@@ -15,6 +15,7 @@ public class TankGame1 extends JFrame {
     public TankGame1(){
         mp = new MyPanel();
         this.add(mp);
+        this.addKeyListener(mp); // 画框监听画板的动静
         this.setSize(1000, 1000);
         this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         this.setVisible(true);

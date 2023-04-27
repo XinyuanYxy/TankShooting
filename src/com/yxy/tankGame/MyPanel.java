@@ -2,17 +2,20 @@ package com.yxy.tankGame;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
 
 /**
  * @author Chris Yang
  * @version 1.0
  */
-public class MyPanel extends JPanel {
+public class MyPanel extends JPanel implements KeyListener {
     MyTank myTank;
 
 
     public MyPanel() {
         myTank = new MyTank(30, 30);
+        myTank.setSpeed(2);
     }
 
     @Override
@@ -20,7 +23,7 @@ public class MyPanel extends JPanel {
         super.paint(g);
         g.fillRect(0,0, 1000, 1000);
         // draw myTank
-        drawTank(myTank.getX(), myTank.getY(), g, 0, 0, 1);
+        drawTank(myTank.getX(), myTank.getY(), g, myTank.getDirection(), 0, 1);
         // face right
         drawTank(100, 100, g, 3, 1, 2);
         // face down
@@ -82,7 +85,7 @@ public class MyPanel extends JPanel {
                 // body: width: 12, height: 22
                 g.fill3DRect(x + 5 * scale, y + 6 * scale, 22 * scale, 12 * scale, false);
                 // draw left corner of the oval
-                g.fillOval(y + 8 * scale, x + 6 * scale,12 * scale,12 * scale);
+                g.fillOval(x + 8 * scale, y + 6 * scale,12 * scale,12 * scale);
                 // right wheel
                 g.fill3DRect(x ,y + 18 * scale,32 * scale, 6 * scale  ,false);
                 // pipeline
@@ -94,7 +97,7 @@ public class MyPanel extends JPanel {
                 // body: width: 12, height: 22
                 g.fill3DRect(x + 5 * scale, y + 6 * scale, 22 * scale, 12 * scale, false);
                 // draw left corner of the oval
-                g.fillOval(y + 12 * scale, x + 6 * scale,12 * scale,12 * scale);
+                g.fillOval(x + 12 * scale, y + 6 * scale,12 * scale,12 * scale);
                 // right wheel
                 g.fill3DRect(x ,y + 18 * scale,32 * scale, 6 * scale  ,false);
                 // pipeline
@@ -102,6 +105,39 @@ public class MyPanel extends JPanel {
                 break;
         }
 
+
+    }
+
+    @Override
+    public void keyTyped(KeyEvent e) {
+
+    }
+
+    @Override
+    public void keyPressed(KeyEvent e) {
+        switch(e.getKeyCode()){
+            case KeyEvent.VK_W:
+                myTank.setDirection(0);
+                myTank.moveUp();
+                break;
+            case KeyEvent.VK_S:
+                myTank.setDirection(1);
+                myTank.moveDown();
+                break;
+            case KeyEvent.VK_A:
+                myTank.setDirection(2);
+                myTank.moveLeft();
+                break;
+            case KeyEvent.VK_D:
+                myTank.setDirection(3);
+                myTank.moveRight();
+                break;
+        }
+        this.repaint();
+    }
+
+    @Override
+    public void keyReleased(KeyEvent e) {
 
     }
 }
