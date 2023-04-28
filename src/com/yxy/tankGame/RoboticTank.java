@@ -5,7 +5,7 @@ package com.yxy.tankGame;
  * @version 1.0
  */
 public class RoboticTank extends Tank implements Runnable{
-    private boolean isAlive = true; // indicating this robotic tank is crashed or not
+
     public RoboticTank(int x, int y, int scale) {
         super(x, y, scale);
     }
@@ -13,9 +13,10 @@ public class RoboticTank extends Tank implements Runnable{
     @Override
     public void run() {
         // keep shooting while being alive
-        while (isAlive){
+        while (isAlive()){
             try {
-                Thread.sleep(2000);
+                int time = (int) (Math.ceil(Math.random() * 3) + 3);
+                Thread.sleep(time * 1000);
             } catch (InterruptedException e) {
                 throw new RuntimeException(e);
             }
@@ -23,13 +24,7 @@ public class RoboticTank extends Tank implements Runnable{
         }
     }
 
-    public boolean isAlive() {
-        return isAlive;
-    }
 
-    public void setAlive(boolean alive) {
-        isAlive = alive;
-    }
 
 
 }

@@ -56,7 +56,7 @@ public class Bullet implements Runnable{
                     break;
             }
 
-            if (x <= 0 || x >= 1000 || y <= 0 || y >= 1000){
+            if (x <= 0 || x >= 1000 || y <= 0 || y >= 1000 || !isAlive){
                 isAlive = false;
             }
         }

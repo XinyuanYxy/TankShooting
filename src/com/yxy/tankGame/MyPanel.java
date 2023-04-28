@@ -15,6 +15,7 @@ import java.util.Vector;
 // MyPanel should be in a thread.
 public class MyPanel extends JPanel implements KeyListener, Runnable {
     MyTank myTank;
+    Vector<Bullet> myBullets;
     Vector<RoboticTank> robots = new Vector<>();
     private int NumOfRobots;
 
@@ -22,7 +23,8 @@ public class MyPanel extends JPanel implements KeyListener, Runnable {
     public MyPanel(int n) {
         NumOfRobots = n;
         myTank = new MyTank(30, 30, 1);
-        // myTank.setSpeed(2);
+        myBullets = myTank.getBullets();
+        myTank.setSpeed(2);
         for (int i = 1; i <= NumOfRobots; i ++) {
             int x = 0, y = 0;
             while (true){
@@ -44,34 +46,43 @@ public class MyPanel extends JPanel implements KeyListener, Runnable {
         super.paint(g);
         g.fillRect(0,0, 1000, 1000);
         // draw player's tank
-        drawTank(myTank.getX(), myTank.getY(), g, myTank.getDirection(), 0, myTank.getScale());
+        if (myTank.isAlive()){
+            drawTank(myTank.getX(), myTank.getY(), g, myTank.getDirection(), 0, myTank.getScale());
+            if (myTank.getBullets().size() > 0){
+                // draw bullets for player's tank
+                drawBullets(myBullets, g);
+            }
+
+        }
         // draw robots tank
         for (int i = 0; i < robots.size(); i++) {
             RoboticTank roboticTank = robots.get(i);
-            drawTank(roboticTank.getX(),roboticTank.getY(), g, roboticTank.getDirection(),1,roboticTank.getScale());
+            if (roboticTank.isAlive()){
+                drawTank(roboticTank.getX(),roboticTank.getY(), g, roboticTank.getDirection(),1,roboticTank.getScale());
+                // draw robots' bullets
+                if (roboticTank.getBullets().size() > 0){
+                    drawBullets(roboticTank.getBullets(), g);
+                }
+            }else {
+                robots.remove(roboticTank);
+            }
 
         }
-        // draw bullets for player's tank
-        drawBullets(myTank, g);
-        // draw robots' bullets
-        for (int i = 0; i < robots.size(); i++) {
-            RoboticTank roboticTank = robots.get(i);
-            drawBullets(roboticTank, g);
-        }
+
+
+
 
     }
-    public void drawBullets(Tank tank, Graphics g){
-        Vector<Bullet> bullets = tank.getBullets();
-        if (bullets.size() > 0){
-            for (int i = 0; i < bullets.size(); i++) {
-                Bullet bullet = bullets.get(i);
-                if (bullet.isAlive()){
-                    drawBullet(bullet,g);
-                }else{
-                    bullets.remove(bullet);
-                }
+    public void drawBullets(Vector<Bullet> bullets, Graphics g){
+        for (int i = 0; i < bullets.size(); i++) {
+            Bullet bullet = bullets.get(i);
+            if (bullet.isAlive()){
+                drawBullet(bullet,g);
+            }else{
+                bullets.remove(bullet);
             }
         }
+
     }
 
 
@@ -172,6 +183,28 @@ public class MyPanel extends JPanel implements KeyListener, Runnable {
 
 
     }
+    // check if our bullet hit a robot or not
+    private void hitTank(Bullet bullet, RoboticTank robot){
+        switch (robot.getDirection()){
+            case 0:
+            case 1:
+                if (bullet.getX() > robot.getX() && bullet.getX() < robot.getX() + 24 && bullet.getY() > robot.getY() &&
+                        bullet.getY() < robot.getY() + 32){
+                    robot.setAlive(false);
+                    bullet.setAlive(false);
+                }
+                break;
+            case 2:
+            case 3:
+                System.out.println("x " + bullet.getX());
+                if (bullet.getX() > robot.getX() && bullet.getX() < robot.getX() + 32 && bullet.getY() > robot.getY() &&
+                        bullet.getY() < robot.getY() + 24){
+                    robot.setAlive(false);
+                    bullet.setAlive(false);
+                }
+                break;
+        }
+    }
 
 
     @Override
@@ -221,6 +254,22 @@ public class MyPanel extends JPanel implements KeyListener, Runnable {
             } catch (InterruptedException e) {
                 throw new RuntimeException(e);
             }
+            // run hitTank method
+
+
+
+            for (int j = 0; j < robots.size(); j++) {
+                RoboticTank robot = robots.get(j);
+                for (int i = 0; i < myBullets.size(); i++) {
+                    Bullet bullet = myBullets.get(i);
+                    if (bullet.isAlive()){
+                        hitTank(bullet,robot);
+                    }
+                }
+
+            }
+
+
             this.repaint();
         }
     }

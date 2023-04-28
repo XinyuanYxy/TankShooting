@@ -12,6 +12,7 @@ public class Tank {
     private int direction;
     private int speed = 1;
     private int scale = 1;
+    private boolean isAlive = true; // indicating this tank is crashed or not
     private Vector<Bullet> bullets = new Vector<>();
 
     public Tank(int x, int y, int scale) {
@@ -53,7 +54,6 @@ public class Tank {
                 bullets.add(newBullet);
                 break;
         }
-        System.out.println("this: " + this + bullets);
         new Thread(newBullet).start();
     }
 
@@ -67,6 +67,14 @@ public class Tank {
 
     public int getScale() {
         return scale;
+    }
+
+    public boolean isAlive() {
+        return isAlive;
+    }
+
+    public void setAlive(boolean alive) {
+        isAlive = alive;
     }
 
     public void setScale(int scale) {
