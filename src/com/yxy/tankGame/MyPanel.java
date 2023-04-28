@@ -4,33 +4,98 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
+import java.util.Vector;
 
 /**
  * @author Chris Yang
  * @version 1.0
  */
-public class MyPanel extends JPanel implements KeyListener {
+
+// in order to have bullet move along its direction,
+// MyPanel should be in a thread.
+public class MyPanel extends JPanel implements KeyListener, Runnable {
     MyTank myTank;
+    Vector<RoboticTank> robots = new Vector<>();
+    private int NumOfRobots;
 
 
-    public MyPanel() {
-        myTank = new MyTank(30, 30);
-        myTank.setSpeed(2);
+    public MyPanel(int n) {
+        NumOfRobots = n;
+        myTank = new MyTank(30, 30, 1);
+        // myTank.setSpeed(2);
+        for (int i = 1; i <= NumOfRobots; i ++) {
+            int x = 0, y = 0;
+            while (true){
+                x = (int) (Math.ceil(Math.random() * 800) - Math.ceil(Math.random() * 100));
+                y = (int) (Math.ceil(Math.random() * 800) - Math.ceil(Math.random() * 100));
+                if ( (Math.abs(x - myTank.getX()) > 100) || (Math.abs(y - myTank.getY()) > 100)){
+                    break;
+                }
+            }
+            RoboticTank roboticTank = new RoboticTank(x, y, 1);
+            roboticTank.setDirection((int) (Math.random() * 4));
+            robots.add(roboticTank);
+            new Thread(roboticTank).start();
+        }
     }
 
     @Override
     public void paint(Graphics g) {
         super.paint(g);
         g.fillRect(0,0, 1000, 1000);
-        // draw myTank
-        drawTank(myTank.getX(), myTank.getY(), g, myTank.getDirection(), 0, 1);
-        // face right
-        drawTank(100, 100, g, 3, 1, 2);
-        // face down
-        drawTank(200, 200, g, 1, 1, 2);
-        // face left
-        drawTank(300, 300, g, 2, 1, 2);
+        // draw player's tank
+        drawTank(myTank.getX(), myTank.getY(), g, myTank.getDirection(), 0, myTank.getScale());
+        // draw robots tank
+        for (int i = 0; i < robots.size(); i++) {
+            RoboticTank roboticTank = robots.get(i);
+            drawTank(roboticTank.getX(),roboticTank.getY(), g, roboticTank.getDirection(),1,roboticTank.getScale());
 
+        }
+        // draw bullets for player's tank
+        drawBullets(myTank, g);
+        // draw robots' bullets
+        for (int i = 0; i < robots.size(); i++) {
+            RoboticTank roboticTank = robots.get(i);
+            drawBullets(roboticTank, g);
+        }
+
+    }
+    public void drawBullets(Tank tank, Graphics g){
+        Vector<Bullet> bullets = tank.getBullets();
+        if (bullets.size() > 0){
+            for (int i = 0; i < bullets.size(); i++) {
+                Bullet bullet = bullets.get(i);
+                if (bullet.isAlive()){
+                    drawBullet(bullet,g);
+                }else{
+                    bullets.remove(bullet);
+                }
+            }
+        }
+    }
+
+
+    public void drawBullet(Bullet bullet, Graphics g){
+        switch (bullet.getType()){
+            case 0: // player's tank
+                g.setColor(Color.CYAN);
+                break;
+            case 1: // robotic tank
+                g.setColor(Color.yellow);
+                break;
+        }
+        switch (bullet.getDirection()){
+            case 0:
+            case 1:
+                g.fillOval(bullet.getX() - 2 * bullet.getScale(), bullet.getY() , 4 * bullet.getScale(), 8 * bullet.getScale());
+                break;
+            case 2:
+            case 3:
+                g.fillOval(bullet.getX(), bullet.getY() - 2 * bullet.getScale(), 8 * bullet.getScale(), 4 * bullet.getScale());
+                break;
+
+
+        }
 
     }
 
@@ -65,7 +130,7 @@ public class MyPanel extends JPanel implements KeyListener {
                 // right wheel
                 g.fill3DRect(x + 18 * scale,y,6 * scale ,32 * scale ,false);
                 // pipeline
-                g.drawLine(x + 12 * scale,y - 20 * scale,x + 12 * scale, y + 26 * scale);
+                g.drawLine(x + 12 * scale,y - 20 * scale,x + 12 * scale, y + 8 * scale);
                 break;
             case 1:
                 // left wheel
@@ -77,7 +142,7 @@ public class MyPanel extends JPanel implements KeyListener {
                 // right wheel
                 g.fill3DRect(x + 18 * scale,y,6 * scale ,32 * scale ,false);
                 // pipeline
-                g.drawLine(x + 12 * scale,y + 47 * scale,x + 12 * scale, y + 27 * scale);
+                g.drawLine(x + 12 * scale,y + 52 * scale,x + 12 * scale, y + 24 * scale);
                 break;
             case 2: // left
                 // left wheel
@@ -89,7 +154,7 @@ public class MyPanel extends JPanel implements KeyListener {
                 // right wheel
                 g.fill3DRect(x ,y + 18 * scale,32 * scale, 6 * scale  ,false);
                 // pipeline
-                g.drawLine(x - 10 * scale,y + 12 * scale,x + 18 * scale, y + 12 * scale);
+                g.drawLine(x - 20 * scale,y + 12 * scale,x + 18 * scale, y + 12 * scale);
                 break;
             case 3: // right
                 // left wheel
@@ -101,12 +166,13 @@ public class MyPanel extends JPanel implements KeyListener {
                 // right wheel
                 g.fill3DRect(x ,y + 18 * scale,32 * scale, 6 * scale  ,false);
                 // pipeline
-                g.drawLine(x + 42 * scale,y + 12 * scale,x + 18 * scale, y + 12 * scale);
+                g.drawLine(x + 52 * scale,y + 12 * scale,x + 18 * scale, y + 12 * scale);
                 break;
         }
 
 
     }
+
 
     @Override
     public void keyTyped(KeyEvent e) {
@@ -132,6 +198,12 @@ public class MyPanel extends JPanel implements KeyListener {
                 myTank.setDirection(3);
                 myTank.moveRight();
                 break;
+            case KeyEvent.VK_J:
+                myTank.shoot();
+                break;
+
+
+
         }
         this.repaint();
     }
@@ -139,5 +211,17 @@ public class MyPanel extends JPanel implements KeyListener {
     @Override
     public void keyReleased(KeyEvent e) {
 
+    }
+
+    @Override
+    public void run() { // repaint every other 100ms to make the bullet move along
+        while (true){
+            try {
+                Thread.sleep(100);
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+            this.repaint();
+        }
     }
 }

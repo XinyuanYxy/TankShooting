@@ -1,5 +1,7 @@
 package com.yxy.tankGame;
 
+import java.util.Vector;
+
 /**
  * @author Chris Yang
  * @version 1.0
@@ -9,10 +11,13 @@ public class Tank {
     private int y;
     private int direction;
     private int speed = 1;
+    private int scale = 1;
+    private Vector<Bullet> bullets = new Vector<>();
 
-    public Tank(int x, int y) {
+    public Tank(int x, int y, int scale) {
         this.x = x;
         this.y = y;
+        this.scale = scale;
     }
 
     public void moveUp(){
@@ -26,6 +31,46 @@ public class Tank {
     }
     public void moveLeft(){
         x -= speed;
+    }
+    public void shoot(){
+        // set where the bullet should start moving
+        Bullet newBullet = null;
+        switch(getDirection()){
+            case 0: // up
+                newBullet = new Bullet(getX() + 12 * getScale(), getY() - 20 * getScale(), getScale(),0, 0);
+                bullets.add(newBullet);
+                break;
+            case 1: // down
+                newBullet = new Bullet(getX() + 12 * getScale() , getY() + 52 * getScale() , getScale(),1, 0);
+                bullets.add(newBullet);
+                break;
+            case 2: // left
+                newBullet = new Bullet(getX() - 20 * getScale(), getY() + 12 * getScale() , getScale(),2, 0);
+                bullets.add(newBullet);
+                break;
+            case 3: // right
+                newBullet = new Bullet(getX() + 52 * getScale(), getY() + 12 * getScale() , getScale(),3, 0);
+                bullets.add(newBullet);
+                break;
+        }
+        System.out.println("this: " + this + bullets);
+        new Thread(newBullet).start();
+    }
+
+    public Vector<Bullet> getBullets() {
+        return bullets;
+    }
+
+    public void setBullets(Vector<Bullet> bullets) {
+        this.bullets = bullets;
+    }
+
+    public int getScale() {
+        return scale;
+    }
+
+    public void setScale(int scale) {
+        this.scale = scale;
     }
 
     public int getX() {

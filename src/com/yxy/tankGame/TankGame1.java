@@ -13,7 +13,9 @@ public class TankGame1 extends JFrame {
         new TankGame1();
     }
     public TankGame1(){
-        mp = new MyPanel();
+        mp = new MyPanel(3);
+        Thread thread = new Thread(mp);
+        thread.start();
         this.add(mp);
         this.addKeyListener(mp); // 画框监听画板的动静
         this.setSize(1000, 1000);
