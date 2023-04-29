@@ -14,14 +14,14 @@ public class RoboticTank extends Tank implements Runnable{
     }
     public void changeDirection(){
         // set random direction
-        int newDirection = (int) (Math.random() * 4);
+        int newDirection = (int) (ThreadLocalRandom.current().nextDouble() * 4);
         this.setDirection(newDirection);
     }
     public void moveAlong(){
         // move along within valid area
         // 在移动过程中 发射子弹
         long start = System.currentTimeMillis();
-        long end = start + (int) ((Math.random() * 2)) * 1000;
+        long end = start + (int) ((ThreadLocalRandom.current().nextDouble() * 2)) * 1000;
         while (System.currentTimeMillis() < end) {
             switch (getDirection()) {
                 case 0:
@@ -31,7 +31,6 @@ public class RoboticTank extends Tank implements Runnable{
                     break;
                 case 1:
                     if (getY() + 20 < 950){
-                        System.out.println("moved down, current y" + getY());
                         moveDown();
                     }
                     break;

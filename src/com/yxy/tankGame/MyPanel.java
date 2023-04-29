@@ -28,7 +28,7 @@ public class MyPanel extends JPanel implements KeyListener, Runnable {
         NumOfRobots = n;
         myTank = new MyTank(30, 30, 1);
         myBullets = myTank.getBullets();
-        myTank.setSpeed(2);
+        myTank.setSpeed(4);
         for (int i = 1; i <= NumOfRobots; i ++) {
             int x = 0, y = 0;
             while (true){
@@ -80,14 +80,15 @@ public class MyPanel extends JPanel implements KeyListener, Runnable {
         for (int i = 0; i < bombs.size(); i++) {
             Bomb bomb = bombs.get(i);
             // may have different images to show bomb life stage
-            bomb.reduceLifeTime();
+            if (bomb.lifeTime > 3){
+                g.drawImage(image1, bomb.x, bomb.y, 80, 80, this);
+            }else {
+                g.drawImage(image2, bomb.x, bomb.y, 80, 80, this);
+            }
             if (bomb.lifeTime <= 0){
                 bombs.remove(bomb);
-            }else if (bomb.lifeTime > 3){
-                g.drawImage(image1, bomb.x, bomb.y, 10, 100, this);
-            }else {
-                g.drawImage(image2, bomb.x, bomb.y, 100, 100, this);
             }
+            bomb.reduceLifeTime();
         }
 
 
@@ -205,26 +206,48 @@ public class MyPanel extends JPanel implements KeyListener, Runnable {
 
     }
     // check if our bullet hit a robot or not
-    private void hitTank(Bullet bullet, RoboticTank robot){
-        switch (robot.getDirection()){
+    private void hitTank(Bullet bullet, Tank tank){
+        switch (tank.getDirection()){
             case 0:
             case 1:
-                if (bullet.getX() > robot.getX() && bullet.getX() < robot.getX() + 24 && bullet.getY() > robot.getY() &&
-                        bullet.getY() < robot.getY() + 32){
-                    robot.setAlive(false);
+                if (bullet.getX() >= tank.getX() && bullet.getX() <= tank.getX() + 24 && bullet.getY() >= tank.getY() &&
+                        bullet.getY() <= tank.getY() + 32){
+                    tank.setAlive(false);
                     bullet.setAlive(false);
-                    bombs.add(new Bomb(robot.getX(), robot.getY()));
+                    bombs.add(new Bomb(tank.getX(), tank.getY()));
                 }
                 break;
             case 2:
             case 3:
-                if (bullet.getX() > robot.getX() && bullet.getX() < robot.getX() + 32 && bullet.getY() > robot.getY() &&
-                        bullet.getY() < robot.getY() + 24){
-                    robot.setAlive(false);
+                if (bullet.getX() >= tank.getX() && bullet.getX() <= tank.getX() + 32 && bullet.getY() >= tank.getY() &&
+                        bullet.getY() <= tank.getY() + 24){
+                    tank.setAlive(false);
                     bullet.setAlive(false);
-                    bombs.add(new Bomb(robot.getX(), robot.getY()));
+                    bombs.add(new Bomb(tank.getX(), tank.getY()));
                 }
                 break;
+        }
+    }
+    public void hitRobots(){
+        for (int j = 0; j < robots.size(); j++) {
+            RoboticTank robot = robots.get(j);
+            for (int i = 0; i < myBullets.size(); i++) {
+                Bullet bullet = myBullets.get(i);
+                if (bullet.isAlive()){
+                    hitTank(bullet,robot);
+                }
+            }
+
+        }
+    }
+    private void hitPlayer() {
+        // iterator every robot, and their bullets
+        for (int i = 0; i < robots.size(); i++) {
+            RoboticTank robot = robots.get(i);
+            Vector<Bullet> bullets = robot.getBullets();
+            for (int j = 0; j < bullets.size(); j++) {
+                hitTank(bullets.get(j), myTank);
+            }
         }
     }
 
@@ -240,25 +263,25 @@ public class MyPanel extends JPanel implements KeyListener, Runnable {
         switch(e.getKeyCode()){
             case KeyEvent.VK_W:
                 myTank.setDirection(0);
-                if (getY() - 20 > 0){
+                if (myTank.getY() - 20 > 0){
                     myTank.moveUp();
                 }
                 break;
             case KeyEvent.VK_S:
                 myTank.setDirection(1);
-                if (getY() + 20 < 1000){
+                if (myTank.getY() + 52 < 950){
                     myTank.moveDown();
                 }
                 break;
             case KeyEvent.VK_A:
                 myTank.setDirection(2);
-                if (getX() - 20 > 0){
+                if (myTank.getX() - 20 > 0){
                     myTank.moveLeft();
                 }
                 break;
             case KeyEvent.VK_D:
                 myTank.setDirection(3);
-                if (getX() + 32 < 1000){
+                if (myTank.getX() + 52 < 950){
                     myTank.moveRight();
                 }
                 break;
@@ -286,19 +309,12 @@ public class MyPanel extends JPanel implements KeyListener, Runnable {
                 throw new RuntimeException(e);
             }
             // run hitTank method
-
-            for (int j = 0; j < robots.size(); j++) {
-                RoboticTank robot = robots.get(j);
-                for (int i = 0; i < myBullets.size(); i++) {
-                    Bullet bullet = myBullets.get(i);
-                    if (bullet.isAlive()){
-                        hitTank(bullet,robot);
-                    }
-                }
-
-            }
-
+            // make sure we have one bullet hit one of the tanks
+            hitRobots();
+            hitPlayer();
             this.repaint();
         }
     }
+
+
 }
