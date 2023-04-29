@@ -5,6 +5,7 @@ import java.awt.*;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.util.Vector;
+import java.util.concurrent.ThreadLocalRandom;
 
 /**
  * @author Chris Yang
@@ -17,6 +18,9 @@ public class MyPanel extends JPanel implements KeyListener, Runnable {
     MyTank myTank;
     Vector<Bullet> myBullets;
     Vector<RoboticTank> robots = new Vector<>();
+    Vector<Bomb> bombs = new Vector<>(); // add a bomb when a tank hit by another
+    Image image1;
+    Image image2;
     private int NumOfRobots;
 
 
@@ -28,8 +32,8 @@ public class MyPanel extends JPanel implements KeyListener, Runnable {
         for (int i = 1; i <= NumOfRobots; i ++) {
             int x = 0, y = 0;
             while (true){
-                x = (int) (Math.ceil(Math.random() * 800) - Math.ceil(Math.random() * 100));
-                y = (int) (Math.ceil(Math.random() * 800) - Math.ceil(Math.random() * 100));
+                x = (int) (ThreadLocalRandom.current().nextDouble() * 950);
+                y = (int) (ThreadLocalRandom.current().nextDouble() * 950);
                 if ( (Math.abs(x - myTank.getX()) > 100) || (Math.abs(y - myTank.getY()) > 100)){
                     break;
                 }
@@ -39,6 +43,10 @@ public class MyPanel extends JPanel implements KeyListener, Runnable {
             robots.add(roboticTank);
             new Thread(roboticTank).start();
         }
+
+        // initialized image
+        image1 = Toolkit.getDefaultToolkit().getImage(Panel.class.getResource("/bomb1.png"));
+        image2 = Toolkit.getDefaultToolkit().getImage(Panel.class.getResource("/bomb.png"));
     }
 
     @Override
@@ -67,6 +75,19 @@ public class MyPanel extends JPanel implements KeyListener, Runnable {
                 robots.remove(roboticTank);
             }
 
+        }
+        // draw bombs if exist
+        for (int i = 0; i < bombs.size(); i++) {
+            Bomb bomb = bombs.get(i);
+            // may have different images to show bomb life stage
+            bomb.reduceLifeTime();
+            if (bomb.lifeTime <= 0){
+                bombs.remove(bomb);
+            }else if (bomb.lifeTime > 3){
+                g.drawImage(image1, bomb.x, bomb.y, 10, 100, this);
+            }else {
+                g.drawImage(image2, bomb.x, bomb.y, 100, 100, this);
+            }
         }
 
 
@@ -192,15 +213,16 @@ public class MyPanel extends JPanel implements KeyListener, Runnable {
                         bullet.getY() < robot.getY() + 32){
                     robot.setAlive(false);
                     bullet.setAlive(false);
+                    bombs.add(new Bomb(robot.getX(), robot.getY()));
                 }
                 break;
             case 2:
             case 3:
-                System.out.println("x " + bullet.getX());
                 if (bullet.getX() > robot.getX() && bullet.getX() < robot.getX() + 32 && bullet.getY() > robot.getY() &&
                         bullet.getY() < robot.getY() + 24){
                     robot.setAlive(false);
                     bullet.setAlive(false);
+                    bombs.add(new Bomb(robot.getX(), robot.getY()));
                 }
                 break;
         }
@@ -214,22 +236,31 @@ public class MyPanel extends JPanel implements KeyListener, Runnable {
 
     @Override
     public void keyPressed(KeyEvent e) {
+        // move within valid area
         switch(e.getKeyCode()){
             case KeyEvent.VK_W:
                 myTank.setDirection(0);
-                myTank.moveUp();
+                if (getY() - 20 > 0){
+                    myTank.moveUp();
+                }
                 break;
             case KeyEvent.VK_S:
                 myTank.setDirection(1);
-                myTank.moveDown();
+                if (getY() + 20 < 1000){
+                    myTank.moveDown();
+                }
                 break;
             case KeyEvent.VK_A:
                 myTank.setDirection(2);
-                myTank.moveLeft();
+                if (getX() - 20 > 0){
+                    myTank.moveLeft();
+                }
                 break;
             case KeyEvent.VK_D:
                 myTank.setDirection(3);
-                myTank.moveRight();
+                if (getX() + 32 < 1000){
+                    myTank.moveRight();
+                }
                 break;
             case KeyEvent.VK_J:
                 myTank.shoot();
@@ -256,8 +287,6 @@ public class MyPanel extends JPanel implements KeyListener, Runnable {
             }
             // run hitTank method
 
-
-
             for (int j = 0; j < robots.size(); j++) {
                 RoboticTank robot = robots.get(j);
                 for (int i = 0; i < myBullets.size(); i++) {
@@ -268,7 +297,6 @@ public class MyPanel extends JPanel implements KeyListener, Runnable {
                 }
 
             }
-
 
             this.repaint();
         }
